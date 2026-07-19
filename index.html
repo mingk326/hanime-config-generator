@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hanime config.yaml 生成器</title>
+<style>
+:root{
+  --bg:#1e1e1e;
+  --card:#2b2b2b;
+  --card-2:#333333;
+  --border:#3f3f3f;
+  --text:#ffffff;
+  --text-dim:#999999;
+  --accent:#4a9eff;
+  --accent-2:#2d7dd2;
+  --success:#4caf50;
+  --danger:#f44336;
+  --warn:#ff9800;
+  --radius:8px;
+  --mono:'Consolas','Courier New',monospace;
+  --sans:'Segoe UI',Arial,sans-serif;
+}
+[data-theme="light"]{
+  --bg:#f5f5f5;
+  --card:#ffffff;
+  --card-2:#fafafa;
+  --border:#e0e0e0;
+  --text:#222222;
+  --text-dim:#666666;
+  --accent:#1976d2;
+  --accent-2:#1565c0;
+  --success:#2e7d32;
+  --danger:#c62828;
+  --warn:#ef6c00;
+}
+*{box-sizing:border-box}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);margin:0;padding:20px;line-height:1.5;transition:background .2s,color .2s}
+.container{max-width:1100px;margin:0 auto}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+header h1{margin:0;font-size:22px;font-weight:600}
+header .sub{color:var(--text-dim);font-size:13px;margin-top:2px}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn{padding:7px 14px;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:6px;cursor:pointer;font-size:13px;font-family:var(--sans);transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{background:var(--card-2);border-color:var(--accent)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent-2)}
+.btn-success{background:var(--success);border-color:var(--success);color:#fff}
+.btn-danger:hover{border-color:var(--danger);color:var(--danger)}
+.btn-sm{padding:4px 10px;font-size:12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:820px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);padding:18px;border-radius:var(--radius);border:1px solid var(--border);margin-bottom:16px}
+.card h2{margin:0 0 14px;font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px}
+.card h2 .badge{background:var(--accent);color:#fff;font-size:12px;padding:2px 8px;border-radius:10px;font-weight:500}
+.field{margin-bottom:12px}
+.field:last-child{margin-bottom:0}
+label{display:block;font-size:13px;margin-bottom:5px;color:var(--text)}
+label .hint{color:var(--text-dim);font-size:11px;margin-left:6px}
+input[type=text],input[type=number],select,textarea{width:100%;padding:8px 10px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;font-size:13px;font-family:var(--sans);transition:border .15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
+input[type=number]{font-family:var(--mono)}
+textarea{resize:vertical;font-family:var(--mono);min-height:80px}
+.input-row{display:flex;gap:6px}
+.input-row > input{flex:1}
+.input-row > .btn{flex:none}
+.drop-zone{border:2px dashed var(--border);border-radius:6px;padding:18px;text-align:center;color:var(--text-dim);font-size:13px;cursor:pointer;transition:all .15s}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--accent);color:var(--accent);background:rgba(74,158,255,.05)}
+.stats{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--text-dim)}
+.stats span b{color:var(--accent);font-family:var(--mono)}
+.id-toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:center}
+.id-toolbar input{flex:1;min-width:120px}
+.id-list{max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;background:var(--bg)}
+.id-list:empty::before{content:'暂无 ID，请导入文件、粘贴或手动添加';display:block;padding:20px;text-align:center;color:var(--text-dim);font-size:12px}
+.id-item{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:13px}
+.id-item:last-child{border-bottom:none}
+.id-item:hover{background:var(--card-2)}
+.id-item .idx{color:var(--text-dim);font-size:11px;margin-right:8px;min-width:36px}
+.id-item .code{flex:1}
+.id-item .del{cursor:pointer;color:var(--text-dim);padding:0 4px;border:none;background:none;font-size:14px}
+.id-item .del:hover{color:var(--danger)}
+.range-wrap{display:flex;align-items:center;gap:10px}
+.range-wrap input[type=range]{flex:1}
+.range-wrap .val{font-family:var(--mono);min-width:42px;text-align:center;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:3px 6px;font-size:12px}
+.checkbox-row{display:flex;align-items:center;gap:6px;font-size:13px}
+.checkbox-row input{width:auto}
+.yaml-out{font-family:var(--mono);font-size:12px;background:#0d0d0d;color:#e0e0e0;border:1px solid var(--border);border-radius:6px;padding:12px;min-height:200px;white-space:pre;overflow:auto;line-height:1.6}
+[data-theme="light"] .yaml-out{background:#1e1e1e;color:#e0e0e0}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--success);color:#fff;padding:10px 18px;border-radius:6px;font-size:13px;opacity:0;transform:translateY(10px);transition:all .25s;pointer-events:none;z-index:1000;box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.error{background:var(--danger)}
+.toast.warn{background:var(--warn)}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:999}
+.modal-bg.show{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;min-width:320px;max-width:500px}
+.modal h3{margin:0 0 14px;font-size:15px}
+.modal input{margin-bottom:10px}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:6px}
+.preset-list{max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;margin-bottom:10px}
+.preset-item{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid var(--border);font-size:13px}
+.preset-item:last-child{border-bottom:none}
+.preset-item:hover{background:var(--card-2)}
+.preset-item .del{color:var(--text-dim);cursor:pointer}
+.preset-item .del:hover{color:var(--danger)}
+.preset-item .load{cursor:pointer;color:var(--accent)}
+.preset-empty{padding:14px;text-align:center;color:var(--text-dim);font-size:12px}
+.switch{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text-dim)}
+footer{text-align:center;color:var(--text-dim);font-size:12px;margin-top:20px;padding:16px}
+.tag{display:inline-block;background:var(--card-2);color:var(--text-dim);font-size:11px;padding:2px 8px;border-radius:10px;margin-right:4px}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div>
+      <h1>Hanime config.yaml 生成器</h1>
+      <div class="sub">导入 SingleCode / 手动管理 ID → 生成配置文件</div>
+    </div>
+    <div class="toolbar">
+      <button class="btn btn-sm" id="themeBtn" onclick="toggleTheme()">🌙 深色</button>
+      <button class="btn btn-sm" onclick="openPreset()">💾 预设</button>
+      <button class="btn btn-sm btn-danger" onclick="clearAll()">🗑 清空</button>
+    </div>
+  </header>
+
+  <div class="stats card" style="display:flex;justify-content:space-between;align-items:center;padding:12px 18px">
+    <div>
+      <span>当前 ID：<b id="statCount">0</b></span>
+      <span>去重后：<b id="statUnique">0</b></span>
+      <span>预计文件：<b id="statSize">0 B</b></span>
+    </div>
+    <div>
+      <span class="tag" id="statSource">来源：无</span>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <!-- 左：ID 管理 -->
+    <div class="card">
+      <h2>① ID 管理 <span class="badge" id="idBadge">0</span></h2>
+
+      <div class="field">
+        <label>导入 SingleCode.txt <span class="hint">支持拖拽</span></label>
+        <div class="drop-zone" id="dropZone" onclick="document.getElementById('file').click()">
+          点击选择文件 或 拖拽 .txt 到此处
+          <input type="file" id="file" accept=".txt" style="display:none">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>粘贴内容 <span class="hint">支持 SingleCode.txt / 单独 ID / 带横杠列表</span></label>
+        <textarea id="pasteArea" placeholder="直接粘贴内容，例如：&#10;SingleCode:&#10;- 407083&#10;- 407059&#10;或：407083,407059 407049"></textarea>
+        <div style="display:flex;gap:6px;margin-top:6px">
+          <button class="btn btn-sm btn-primary" onclick="parsePaste(true)">解析并替换</button>
+          <button class="btn btn-sm" onclick="parsePaste(false)">解析并追加</button>
+          <button class="btn btn-sm" onclick="document.getElementById('pasteArea').value=''">清空粘贴框</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>手动添加 ID <span class="hint">多个用逗号/空格/换行分隔</span></label>
+        <div class="input-row">
+          <input type="text" id="manualInput" placeholder="例如：407083, 407059 407049" onkeydown="if(event.key==='Enter')addManual()">
+          <button class="btn btn-sm" onclick="addManual()">添加</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>ID 列表</label>
+        <div class="id-toolbar">
+          <input type="text" id="searchInput" placeholder="搜索/筛选 ID..." oninput="renderList()">
+          <button class="btn btn-sm" onclick="sortIds(true)">↑ 升序</button>
+          <button class="btn btn-sm" onclick="sortIds(false)">↓ 降序</button>
+          <button class="btn btn-sm" onclick="dedupe()">去重</button>
+          <button class="btn btn-sm" onclick="copyIds()">复制</button>
+        </div>
+        <div class="id-list" id="idList"></div>
+      </div>
+    </div>
+
+    <!-- 右：配置 -->
+    <div class="card">
+      <h2>② 配置项 <span class="badge" style="background:var(--text-dim)">10 字段</span></h2>
+
+      <div class="field">
+        <label>chromeRemoteURL <span class="hint">Chrome 远程调试 URL</span></label>
+        <input type="text" id="chromeUrl" value="http://localhost:9222/json/version" placeholder="http://localhost:9222/json/version">
+      </div>
+
+      <div class="field">
+        <label>CacheDir <span class="hint">缓存目录</span></label>
+        <div class="input-row">
+          <input type="text" id="cache" placeholder="例如 E:\Cache 或 \\R1\1\Cache">
+          <button class="btn" onclick="browseDir('cache')">浏览</button>
+        </div>
+        <small style="color:var(--text-dim);font-size:11px">浏览仅填入文件夹名，请手动补全完整路径（可从资源管理器地址栏复制）</small>
+      </div>
+
+      <div class="field">
+        <label>DownDir <span class="hint">下载目录</span></label>
+        <div class="input-row">
+          <input type="text" id="down" placeholder="例如 Z:\ 或 \\R1\1\warehouse">
+          <button class="btn" onclick="browseDir('down')">浏览</button>
+        </div>
+        <small style="color:var(--text-dim);font-size:11px">浏览仅填入文件夹名，请手动补全完整路径</small>
+      </div>
+
+      <div class="field">
+        <label>HttpProxy <span class="hint">HTTP 代理（可选，留空则不启用）</span></label>
+        <input type="text" id="httpProxy" placeholder="例如 http://proxy.example.com:8080 或 http://127.0.0.1:7890">
+      </div>
+
+      <div class="field">
+        <label class="checkbox-row">
+          <input type="checkbox" id="directDlFirst" checked> DirectDownloadFirst <span class="hint">优先尝试直接下载</span>
+        </label>
+        <label class="checkbox-row" style="margin-top:6px">
+          <input type="checkbox" id="clearCache" checked> ClearCache <span class="hint">下载后清除缓存</span>
+        </label>
+      </div>
+
+      <div class="field">
+        <label>MaxDownloadWorkers <span class="hint">最大并发下载线程数</span></label>
+        <div class="range-wrap">
+          <input type="range" id="workersRange" min="1" max="100" value="10" oninput="syncWorkers()">
+          <span class="val" id="workersVal">10</span>
+        </div>
+        <input type="number" id="workers" min="1" max="100" value="10" style="margin-top:6px" oninput="document.getElementById('workersRange').value=this.value;document.getElementById('workersVal').textContent=this.value">
+      </div>
+
+      <div class="field">
+        <label>ListCode <span class="hint">播放列表 ID 列表（多个用逗号/换行/空格分隔）</span></label>
+        <textarea id="listCode" placeholder="例如：&#10;playlist-id-1, playlist-id-2&#10;或每行一个" style="min-height:70px"></textarea>
+      </div>
+
+      <div class="field">
+        <label>VideoResolution <span class="hint">视频分辨率</span></label>
+        <select id="res">
+          <option value="1080p">1080p</option>
+          <option value="720p">720p</option>
+          <option value="480p">480p</option>
+          <option value="360p">360p</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label class="checkbox-row">
+          <input type="checkbox" id="sortOnGen" checked> 生成时自动按 ID 升序排序
+        </label>
+        <label class="checkbox-row" style="margin-top:6px">
+          <input type="checkbox" id="dedupeOnGen" checked> 生成时自动去重
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- 输出 -->
+  <div class="card">
+    <h2>③ 生成 config.yaml</h2>
+    <div class="toolbar" style="margin-bottom:12px">
+      <button class="btn btn-primary" onclick="gen()">生成 config.yaml</button>
+      <button class="btn btn-success" onclick="download()">⬇ 下载文件</button>
+      <button class="btn" onclick="copyYaml()">📋 复制内容</button>
+      <button class="btn" onclick="gen(true)">实时预览</button>
+      <span style="flex:1"></span>
+      <span style="font-size:12px;color:var(--text-dim)" id="yamlInfo"></span>
+    </div>
+    <div class="yaml-out" id="out"># 点击「生成 config.yaml」查看结果</div>
+  </div>
+
+  <!-- Python 抓取脚本生成器 -->
+  <div class="card">
+    <h2>④ 生成 hanime_get_code.py <span class="badge">抓取脚本</span></h2>
+    <div class="grid">
+      <div>
+        <div class="field">
+          <label>起始页 <span class="hint">page 参数</span></label>
+          <input type="number" id="pyStart" min="1" value="1">
+        </div>
+        <div class="field">
+          <label>结束页 <span class="hint">包含</span></label>
+          <input type="number" id="pyEnd" min="1" value="334">
+        </div>
+        <div class="field">
+          <label>排序方式 <span class="hint">URL sort 参数</span></label>
+          <select id="pySort">
+            <option value="%E6%9C%80%E6%96%B0%E4%B8%8A%E5%B8%82">最新上片</option>
+            <option value="%E6%9C%80%E5%A4%9A%E9%BB%9E%E6%93%8A">最多點擊</option>
+            <option value="%E6%9C%80%E5%A4%9A%E6%94%B6%E8%97%8F">最多收藏</option>
+            <option value="%E6%9C%80%E9%AB%98%E8%A9%95%E5%88%86">最高評分</option>
+            <option value="%E6%9C%80%E5%A4%9A%E7%99%BC%E8%A1%A8">最多發表</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>请求间隔（秒） <span class="hint">每页抓取后等待</span></label>
+          <input type="number" id="pySleep" min="0" step="0.1" value="1">
+        </div>
+      </div>
+      <div>
+        <div class="field">
+          <label>输出文件路径 <span class="hint">填目录或 .txt 均可，目录自动补 SingleCode.txt</span></label>
+          <input type="text" id="pyOutput" value="E:\SingleCode.txt" placeholder="如 E:\SingleCode.txt 或 E:\ai work">
+        </div>
+        <div class="field">
+          <label>Chrome 可执行文件路径</label>
+          <div class="input-row">
+            <input type="text" id="pyChrome" value="C:\Program Files\Google\Chrome\Application\chrome.exe" placeholder="chrome.exe 路径">
+            <button class="btn" onclick="browseChrome()">浏览</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>页面加载超时（秒）</label>
+          <input type="number" id="pyTimeout" min="10" value="60">
+        </div>
+        <div class="field">
+          <label>验证等待（秒） <span class="hint">首次打开后 sleep</span></label>
+          <input type="number" id="pyVerify" min="0" value="10">
+        </div>
+        <div class="field">
+          <label class="checkbox-row"><input type="checkbox" id="pyHeadless"> 无头模式（headless）<span class="hint" style="color:var(--warn)">⚠ 有 Cloudflare 时建议关闭</span></label>
+          <label class="checkbox-row" style="margin-top:6px"><input type="checkbox" id="pyTqdm" checked> 使用 tqdm 进度条</label>
+          <label class="checkbox-row" style="margin-top:6px"><input type="checkbox" id="pyAutoInput" checked> 首页加载后等待手动确认</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>User-Agent <span class="hint">留空使用默认</span></label>
+      <input type="text" id="pyUA" placeholder="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36">
+    </div>
+
+    <div class="toolbar" style="margin:14px 0 12px">
+      <button class="btn btn-primary" onclick="genPy()">生成 .py 脚本</button>
+      <button class="btn btn-success" onclick="downloadPy()">⬇ 下载 .py</button>
+      <button class="btn" onclick="copyPy()">📋 复制代码</button>
+      <button class="btn" onclick="genPy(true)">实时预览</button>
+      <span style="flex:1"></span>
+      <span style="font-size:12px;color:var(--text-dim)" id="pyInfo"></span>
+    </div>
+    <div class="yaml-out" id="pyOut" style="min-height:160px"># 点击「生成 .py 脚本」查看结果</div>
+  </div>
+
+  <footer>
+    Hanime config.yaml 生成器 · 数据全部在本地处理，不上传任何信息
+  </footer>
+</div>
+
+<!-- 预设弹窗 -->
+<div class="modal-bg" id="presetModal" onclick="if(event.target===this)closePreset()">
+  <div class="modal">
+    <h3>配置预设</h3>
+    <div style="font-size:12px;color:var(--text-dim);margin-bottom:10px">保存当前 ChromeRemoteURL / CacheDir / DownDir / Workers / Resolution，下次一键加载</div>
+    <div class="preset-list" id="presetList"></div>
+    <div class="input-row" style="margin-bottom:10px">
+      <input type="text" id="presetName" placeholder="预设名称（如：NAS 仓库-720p）" onkeydown="if(event.key==='Enter')savePreset()">
+      <button class="btn btn-primary btn-sm" onclick="savePreset()">保存当前</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-sm" onclick="closePreset()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============ 状态 ============
+let ids = [];
+let source = '无';
+
+// ============ 工具函数 ============
+function $(id){return document.getElementById(id)}
+
+function toast(msg, type){
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + (type||'');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=>t.className='toast',2000);
+}
+
+// 从任意文本中提取 ID（兼容多种格式）
+function extractIds(raw){
+  if(!raw) return [];
+  return raw
+    .split(/[\s,;]+/)              // 按空白/逗号/分号分割
+    .map(x => x.replace(/^[-*]\s*/,'').trim())  // 去掉前缀 - *
+    .filter(x => /^\d+$/.test(x))  // 只要纯数字
+    .filter(x => x.length > 0);
+}
+
+function updateStats(){
+  $('statCount').textContent = ids.length;
+  $('statUnique').textContent = new Set(ids).size;
+  $('idBadge').textContent = ids.length;
+  $('statSource').textContent = '来源：' + source;
+  // 估算文件大小
+  const sample = ids.slice(0,1).map(i=>'- '+i).join('');
+  const bytes = ids.reduce((s,i)=>s+('- '.length+i.length+1),0) + 200;
+  $('statSize').textContent = formatBytes(bytes);
+  renderList();
+}
+
+function formatBytes(b){
+  if(b<1024) return b+' B';
+  if(b<1024*1024) return (b/1024).toFixed(1)+' KB';
+  return (b/1024/1024).toFixed(2)+' MB';
+}
+
+// ============ ID 列表渲染 ============
+function renderList(){
+  const kw = $('searchInput').value.trim();
+  const list = $('idList');
+  let arr = ids.map((code,idx)=>({code,idx}));
+  if(kw){
+    arr = arr.filter(x=>x.code.includes(kw));
+  }
+  // 限制显示数量避免卡顿
+  const show = arr.slice(0, 500);
+  list.innerHTML = show.map((x,i)=>`
+    <div class="id-item">
+      <span class="idx">#${x.idx+1}</span>
+      <span class="code">${escapeHtml(x.code)}</span>
+      <span class="del" onclick="removeId(${x.idx})" title="删除">✕</span>
+    </div>
+  `).join('');
+  if(arr.length > 500){
+    list.innerHTML += `<div class="id-item" style="justify-content:center;color:var(--text-dim)">仅显示前 500 条，共 ${arr.length} 条匹配...</div>`;
+  }
+}
+
+function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+function removeId(idx){
+  ids.splice(idx,1);
+  updateStats();
+}
+
+// ============ 导入：文件 ============
+$('file').addEventListener('change', e=>{
+  const f = e.target.files[0];
+  if(!f) return;
+  const r = new FileReader();
+  r.onload = ()=>{
+    const parsed = extractIds(r.result);
+    if(parsed.length===0){ toast('未识别到任何 ID','error'); return; }
+    ids = parsed;
+    source = f.name;
+    updateStats();
+    toast('从文件读取 '+ids.length+' 个 ID');
+  };
+  r.readAsText(f,'utf-8');
+  e.target.value = '';
+});
+
+// ============ 导入：拖拽 ============
+const dropZone = $('dropZone');
+['dragenter','dragover'].forEach(ev=>dropZone.addEventListener(ev,e=>{
+  e.preventDefault(); dropZone.classList.add('dragover');
+}));
+['dragleave','drop'].forEach(ev=>dropZone.addEventListener(ev,e=>{
+  e.preventDefault(); dropZone.classList.remove('dragover');
+}));
+dropZone.addEventListener('drop',e=>{
+  const f = e.dataTransfer.files[0];
+  if(!f) return;
+  if(!f.name.toLowerCase().endsWith('.txt')){
+    toast('请拖入 .txt 文件','error'); return;
+  }
+  const r = new FileReader();
+  r.onload = ()=>{
+    const parsed = extractIds(r.result);
+    if(parsed.length===0){ toast('未识别到任何 ID','error'); return; }
+    ids = parsed;
+    source = f.name;
+    updateStats();
+    toast('拖拽读取 '+ids.length+' 个 ID');
+  };
+  r.readAsText(f,'utf-8');
+});
+
+// ============ 导入：粘贴 ============
+function parsePaste(replace){
+  const raw = $('pasteArea').value;
+  const parsed = extractIds(raw);
+  if(parsed.length===0){ toast('未识别到任何 ID','error'); return; }
+  if(replace){
+    ids = parsed;
+    source = '粘贴';
+  }else{
+    ids = ids.concat(parsed);
+    source = source==='无' ? '粘贴' : source + '+粘贴';
+  }
+  updateStats();
+  toast((replace?'替换':'追加')+' '+parsed.length+' 个 ID，共 '+ids.length);
+}
+
+// ============ 手动添加 ============
+function addManual(){
+  const raw = $('manualInput').value;
+  const parsed = extractIds(raw);
+  if(parsed.length===0){ toast('未识别到有效 ID','error'); return; }
+  ids = ids.concat(parsed);
+  source = source==='无' ? '手动' : source + '+手动';
+  $('manualInput').value = '';
+  updateStats();
+  toast('添加 '+parsed.length+' 个 ID，共 '+ids.length);
+}
+
+// ============ ID 操作 ============
+function sortIds(asc){
+  ids.sort((a,b)=>asc? a.localeCompare(b) : b.localeCompare(a));
+  updateStats();
+  toast(asc?'升序排序完成':'降序排序完成');
+}
+function dedupe(){
+  const before = ids.length;
+  ids = [...new Set(ids)];
+  updateStats();
+  toast('去重：'+before+' → '+ids.length);
+}
+function copyIds(){
+  if(ids.length===0){ toast('ID 列表为空','error'); return; }
+  const text = ids.map(i=>'- '+i).join('\n');
+  navigator.clipboard.writeText(text).then(()=>toast('已复制 '+ids.length+' 个 ID到剪贴板'));
+}
+function clearAll(){
+  if(ids.length===0){ toast('已经是空的','warn'); return; }
+  if(!confirm('确定清空所有 ID？')) return;
+  ids = [];
+  source = '无';
+  $('pasteArea').value = '';
+  $('out').textContent = '# 点击「生成 config.yaml」查看结果';
+  updateStats();
+  toast('已清空');
+}
+
+// ============ 目录浏览 ============
+async function browseDir(targetId){
+  // 优先使用 File System Access API
+  if(window.showDirectoryPicker){
+    try{
+      const dh = await window.showDirectoryPicker();
+      $(targetId).value = dh.name;
+      toast('已填入文件夹名：'+dh.name+'，请补全完整路径','warn');
+    }catch(e){
+      if(e.name!=='AbortError') toast('浏览失败：'+e.message,'error');
+    }
+    return;
+  }
+  // 回退：webkitdirectory
+  const inp = document.createElement('input');
+  inp.type = 'file';
+  inp.webkitdirectory = true;
+  inp.onchange = e=>{
+    const files = e.target.files;
+    if(files.length>0){
+      const fp = files[0].webkitRelativePath || files[0].name;
+      $(targetId).value = fp.split('/')[0];
+      toast('已填入文件夹名，请补全完整路径','warn');
+    }
+  };
+  inp.click();
+}
+
+// ============ Workers 同步 ============
+function syncWorkers(){
+  const v = $('workersRange').value;
+  $('workers').value = v;
+  $('workersVal').textContent = v;
+}
+
+// ============ 生成 YAML ============
+function gen(previewOnly){
+  let workIds = [...ids];
+  if($('dedupeOnGen').checked) workIds = [...new Set(workIds)];
+  if($('sortOnGen').checked) workIds.sort((a,b)=>a.localeCompare(b));
+
+  // 解析 ListCode（播放列表 ID，保留原始字符串，不做纯数字过滤）
+  let listIds = $('listCode').value
+    .split(/[\s,;]+/)
+    .map(x => x.replace(/^[-*]\s*/,'').trim())
+    .filter(x => x.length > 0);
+  if($('dedupeOnGen').checked) listIds = [...new Set(listIds)];
+
+  // 校验
+  const errors = [];
+  if(workIds.length===0 && listIds.length===0) errors.push('SingleCode 和 ListCode 均为空');
+  if(!$('cache').value.trim()) errors.push('CacheDir 未填');
+  if(!$('down').value.trim()) errors.push('DownDir 未填');
+  if(errors.length>0 && !previewOnly){
+    toast(errors.join('；'),'error'); return;
+  }
+
+  // 按用户示例 config.yaml 的简洁风格生成（无注释、无引号、列表不缩进）
+  // 字段顺序匹配 E:\ai work\config.yaml 示例
+  // YAML plain scalar 规则：仅当值含特殊字符时才加单引号，否则不加引号
+
+  // 判断字符串是否需要加引号（YAML plain scalar 限制）
+  function needsQuote(s){
+    s = String(s);
+    if(s === '') return true;                       // 空字符串
+    if(/^[\s]/.test(s) || /[\s]$/.test(s)) return true;  // 首尾空格
+    // 以特殊字符开头
+    if(/^[-?:,&*!|>'"%@`#{}\[\]]/.test(s)) return true;
+    // 包含 ": "（冒号+空格）或 " #"（空格+井号）
+    if(/:\s/.test(s) || /\s#/.test(s)) return true;
+    // YAML 保留字
+    if(/^(true|false|null|yes|no|~|on|off)$/i.test(s)) return true;
+    return false;
+  }
+  // 生成 YAML 标量值：需要时用单引号包裹（内部单引号转义为两个单引号）
+  function yamlVal(s){
+    s = String(s);
+    if(needsQuote(s)){
+      return "'" + s.replace(/'/g, "''") + "'";
+    }
+    return s;
+  }
+  // 列表项：纯数字不加引号，其他按需加引号
+  function yamlItem(s){
+    s = String(s);
+    if(/^\d+$/.test(s)) return s;   // 纯数字：直接输出（匹配用户示例 - 407213）
+    return yamlVal(s);              // 非纯数字：按规则处理
+  }
+
+  let y = '';
+  y += 'chromeRemoteURL: ' + yamlVal($('chromeUrl').value.trim()) + '\n';
+  y += '\n';
+  y += 'CacheDir: ' + yamlVal($('cache').value.trim()) + '\n';
+  y += 'DownDir: ' + yamlVal($('down').value.trim()) + '\n';
+  y += 'VideoResolution: ' + yamlVal($('res').value) + '\n';
+  y += 'MaxDownloadWorkers: ' + parseInt($('workers').value||10) + '\n';
+  y += 'DirectDownloadFirst: ' + ($('directDlFirst').checked ? 'true' : 'false') + '\n';
+
+  // HttpProxy 可选：留空则不输出该字段
+  const proxy = $('httpProxy').value.trim();
+  if(proxy){
+    y += 'HttpProxy: ' + yamlVal(proxy) + '\n';
+  }
+
+  // ListCode 播放列表（不缩进）
+  if(listIds.length > 0){
+    y += 'ListCode:\n';
+    listIds.forEach(i => y += '- ' + yamlItem(i) + '\n');
+  }
+
+  // SingleCode 单个视频（不缩进）
+  y += 'SingleCode:\n';
+  workIds.forEach(i => y += '- ' + yamlItem(i) + '\n');
+
+  y += 'ClearCache: ' + ($('clearCache').checked ? 'true' : 'false') + '\n';
+
+  $('out').textContent = y;
+  const totalIds = workIds.length + listIds.length;
+  $('yamlInfo').textContent = totalIds + ' 个 ID · ' + formatBytes(y.length);
+  if(!previewOnly) toast('生成成功：SingleCode '+workIds.length+' + ListCode '+listIds.length);
+}
+
+function download(){
+  gen();
+  if($('out').textContent.startsWith('# 点击')) return;
+  const blob = new Blob([$('out').textContent], {type:'text/yaml;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'config.yaml';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('已下载 config.yaml');
+}
+
+function copyYaml(){
+  const text = $('out').textContent;
+  if(text.startsWith('# 点击')){ toast('请先生成','error'); return; }
+  navigator.clipboard.writeText(text).then(()=>toast('已复制到剪贴板'));
+}
+
+// ============ 生成 Python 抓取脚本 ============
+function pyVal(id){ return $(id).value.trim() }
+
+function genPy(previewOnly){
+  const start = parseInt(pyVal('pyStart')) || 1;
+  const end = parseInt(pyVal('pyEnd')) || 1;
+  const sort = pyVal('pySort');
+  const sleep = parseFloat(pyVal('pySleep'));
+  const output = pyVal('pyOutput') || 'E:\\SingleCode.txt';
+  const chromePath = pyVal('pyChrome') || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+  const timeout = (parseInt(pyVal('pyTimeout')) || 60) * 1000;
+  const verify = parseInt(pyVal('pyVerify')) || 0;
+  const ua = pyVal('pyUA');
+  const headless = $('pyHeadless').checked;
+  const useTqdm = $('pyTqdm').checked;
+  const useInput = $('pyAutoInput').checked;
+
+  if(start > end){ toast('起始页不能大于结束页','error'); return; }
+
+  // 用普通字符串拼接，避免模板字符串反引号泄漏到生成的代码里
+  const urlTemplate = 'https://hanime1.me/search?sort=' + sort + '&page={}';
+  // 防护：清理可能混入的反引号
+  const cleanUrl = urlTemplate.replace(/`/g, '');
+
+  // 输出路径处理：如果是目录或没有 .txt 后缀，自动补全文件名
+  let finalOutput = output.replace(/[`]/g, '');
+  const lowerOut = finalOutput.toLowerCase();
+  if(!lowerOut.endsWith('.txt')){
+    // 去掉末尾的反斜杠/斜杠，再追加文件名
+    finalOutput = finalOutput.replace(/[\\/]+$/, '') + '\\SingleCode.txt';
+  }
+
+  // Python 字符串里的反斜杠和引号需要转义
+  const pyStr = s => s.replace(/\\/g,'\\\\').replace(/"/g,'\\"');
+
+  let code = '';
+  code += '"""\n';
+  code += 'hanime_get_code.py\n';
+  code += `# 由 Hanime config.yaml 生成器 生成 · ${new Date().toLocaleString('zh-CN')}\n`;
+  code += `# 抓取范围：第 ${start} 页 ~ 第 ${end} 页（共 ${end-start+1} 页）\n`;
+  code += `# 排序：${$('pySort').options[$('pySort').selectedIndex].text}\n`;
+  code += `# 输出：${finalOutput}\n`;
+  code += '"""\n';
+  code += 'import re\n';
+  code += 'import time\n';
+  code += 'import os\n';
+  if(useTqdm) code += 'from tqdm import tqdm\n';
+  code += 'from playwright.sync_api import sync_playwright\n\n';
+  code += '# ============ 配置 ============\n';
+  code += `OUTPUT = r"${finalOutput}"\n`;
+  code += `URL = "${cleanUrl}"\n`;
+  code += `START_PAGE = ${start}\n`;
+  code += `END_PAGE = ${end}\n`;
+  code += `SLEEP = ${sleep}\n`;
+  code += `TIMEOUT = ${timeout}\n`;
+  code += `VERIFY_WAIT = ${verify}\n`;
+  code += `HEADLESS = ${headless ? 'True' : 'False'}\n`;
+  code += `CHROME_PATH = r"${chromePath}"\n`;
+  if(ua) code += `USER_AGENT = "${pyStr(ua)}"\n`;
+  else code += 'USER_AGENT = (\n    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "\n    "AppleWebKit/537.36 "\n    "Chrome/120 Safari/537.36"\n)\n';
+  code += '\n';
+  code += '# 保存 ID（自动去重）\n';
+  code += 'codes = set()\n\n\n';
+  code += '# ============ 路径自愈 ============\n';
+  code += '# 如果 OUTPUT 是目录或没有 .txt 后缀，自动补全文件名\n';
+  code += 'if os.path.isdir(OUTPUT) or not OUTPUT.lower().endswith(".txt"):\n';
+  code += '    OUTPUT = os.path.join(OUTPUT, "SingleCode.txt")\n';
+  code += '    print("[提示] OUTPUT 已自动补全为：", OUTPUT)\n\n\n';
+  code += 'def extract_code(html):\n';
+  code += '    """提取 watch?v=xxxx"""\n';
+  code += '    return re.findall(r"watch\\?v=([a-zA-Z0-9_-]+)", html)\n\n\n';
+  code += 'def main():\n';
+  code += '    with sync_playwright() as p:\n';
+  code += '        # 使用本机 Chrome\n';
+  code += '        browser = p.chromium.launch(\n';
+  code += `            headless=${headless ? 'True' : 'False'},\n`;
+  code += '            executable_path=CHROME_PATH,\n';
+  code += '            args=["--disable-blink-features=AutomationControlled"]\n';
+  code += '        )\n\n';
+  code += '        # 浏览器环境\n';
+  code += '        context = browser.new_context(\n';
+  code += '            viewport={"width": 1920, "height": 1080},\n';
+  code += '            user_agent=USER_AGENT\n';
+  code += '        )\n';
+  code += '        page = context.new_page()\n\n';
+  code += '        print("==============================")\n';
+  code += '        print("正在打开网站")\n';
+  code += '        print("如果出现 Cloudflare 验证，请手动完成")\n';
+  code += `        print(f"抓取范围：第 {START_PAGE} 页 ~ 第 {END_PAGE} 页")\n`;
+  code += '        print("==============================")\n\n';
+  code += '        # 打开首页\n';
+  code += '        page.goto(URL.format(START_PAGE), wait_until="networkidle", timeout=TIMEOUT)\n\n';
+  if(verify > 0) code += `        time.sleep(${verify})\n\n`;
+  if(useInput){
+    code += '        input("\\n确认网页已经正常打开后，按 Enter 开始抓取...")\n\n';
+  }
+  code += `        total = END_PAGE - START_PAGE + 1\n`;
+  code += `        print(f"\\n开始抓取 {total} 页\\n")\n\n`;
+  code += '        # 抓取\n';
+  if(useTqdm){
+    code += `        for i in tqdm(range(START_PAGE, END_PAGE + 1), desc="抓取进度"):\n`;
+  }else{
+    code += `        for i in range(START_PAGE, END_PAGE + 1):\n`;
+    code += '            print(f"正在抓取第 {i} 页...")\n';
+  }
+  code += '            try:\n';
+  code += '                page.goto(URL.format(i), wait_until="networkidle", timeout=TIMEOUT)\n';
+  code += '                html = page.content()\n';
+  code += '                result = extract_code(html)\n';
+  code += '                codes.update(result)\n';
+  code += '                print(f"第 {i:>3} 页：新增 {len(result)} 个，总计 {len(codes)} 个")\n';
+  if(sleep > 0) code += `                time.sleep(${sleep})\n`;
+  code += '            except Exception as e:\n';
+  code += '                print(f"\\n第 {i} 页失败：{e}")\n\n';
+  code += '        browser.close()\n\n';
+  code += '    print("\\n==============================")\n';
+  code += '    print("共获取：", len(codes), "个 ID")\n';
+  code += '    print("==============================")\n\n';
+  code += '    # 写入文件（自动排序）\n';
+  code += '    out_dir = os.path.dirname(OUTPUT)\n';
+  code += '    if out_dir and not os.path.exists(out_dir):\n';
+  code += '        os.makedirs(out_dir, exist_ok=True)\n';
+  code += '        print("[提示] 已自动创建目录：", out_dir)\n';
+  code += '    with open(OUTPUT, "w", encoding="utf-8") as f:\n';
+  code += '        f.write("SingleCode:\\n")\n';
+  code += '        for code in sorted(codes):\n';
+  code += '            f.write(f"- {code}\\n")\n\n';
+  code += '    print("完成！")\n';
+  code += '    print("文件位置：", OUTPUT)\n\n\n';
+  code += 'if __name__ == "__main__":\n';
+  code += '    main()\n';
+
+  $('pyOut').textContent = code;
+  const lines = code.split('\n').length;
+  $('pyInfo').textContent = lines + ' 行 · ' + formatBytes(code.length);
+  if(!previewOnly) toast('脚本生成成功：'+lines+' 行');
+}
+
+function downloadPy(){
+  genPy();
+  const text = $('pyOut').textContent;
+  if(text.startsWith('# 点击')) return;
+  const blob = new Blob([text], {type:'text/x-python;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'hanime_get_code.py';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('已下载 hanime_get_code.py');
+}
+
+function copyPy(){
+  const text = $('pyOut').textContent;
+  if(text.startsWith('# 点击')){ toast('请先生成','error'); return; }
+  navigator.clipboard.writeText(text).then(()=>toast('已复制 Python 代码到剪贴板'));
+}
+
+// 浏览 Chrome 可执行文件
+async function browseChrome(){
+  if(window.showOpenFilePicker){
+    try{
+      const [fh] = await window.showOpenFilePicker({
+        types:[{description:'Chrome', accept:{'application/octet-stream':['.exe']}}]
+      });
+      // File Handle 无法直接拿到绝对路径，提示用户手动填
+      $('pyChrome').value = fh.name;
+      toast('已选择文件：'+fh.name+'，请补全完整路径','warn');
+    }catch(e){
+      if(e.name!=='AbortError') toast('选择失败：'+e.message,'error');
+    }
+    return;
+  }
+  // 回退：普通文件选择
+  const inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = '.exe';
+  inp.onchange = e=>{
+    const f = e.target.files[0];
+    if(f) $('pyChrome').value = f.name;
+  };
+  inp.click();
+}
+
+// Python 脚本实时预览
+function scheduleLivePy(){
+  clearTimeout(scheduleLivePy._t);
+  scheduleLivePy._t = setTimeout(()=>genPy(true), 300);
+}
+['pyStart','pyEnd','pySort','pySleep','pyOutput','pyChrome','pyTimeout','pyVerify','pyUA'].forEach(id=>{
+  document.addEventListener('DOMContentLoaded',()=>{
+    const el = $(id);
+    if(el){ el.addEventListener('input', scheduleLivePy); el.addEventListener('change', scheduleLivePy); }
+  });
+});
+['pyHeadless','pyTqdm','pyAutoInput'].forEach(id=>{
+  document.addEventListener('DOMContentLoaded',()=>{
+    const el = $(id);
+    if(el) el.addEventListener('change', scheduleLivePy);
+  });
+});
+
+// ============ 预设 ============
+const PRESET_KEY = 'hanime_config_presets';
+function getPresets(){
+  try{ return JSON.parse(localStorage.getItem(PRESET_KEY)||'[]'); }catch(e){ return []; }
+}
+function setPresets(arr){ localStorage.setItem(PRESET_KEY, JSON.stringify(arr)); }
+
+function openPreset(){
+  renderPresets();
+  $('presetModal').classList.add('show');
+}
+function closePreset(){ $('presetModal').classList.remove('show'); }
+
+function renderPresets(){
+  const arr = getPresets();
+  const list = $('presetList');
+  if(arr.length===0){
+    list.innerHTML = '<div class="preset-empty">暂无预设，下方输入名称后保存</div>';
+    return;
+  }
+  list.innerHTML = arr.map((p,i)=>`
+    <div class="preset-item">
+      <span><b>${escapeHtml(p.name)}</b> <span style="color:var(--text-dim);font-size:11px">${escapeHtml(p.res)} · ${p.workers}线程 · ${p.ids} ID</span></span>
+      <span>
+        <span class="load" onclick="loadPreset(${i})">加载</span>
+        <span class="del" onclick="deletePreset(${i})">✕</span>
+      </span>
+    </div>
+  `).join('');
+}
+
+function savePreset(){
+  const name = $('presetName').value.trim();
+  if(!name){ toast('请输入预设名称','error'); return; }
+  const arr = getPresets();
+  arr.push({
+    name,
+    chromeUrl: $('chromeUrl').value,
+    cache: $('cache').value,
+    down: $('down').value,
+    httpProxy: $('httpProxy').value,
+    directDlFirst: $('directDlFirst').checked,
+    clearCache: $('clearCache').checked,
+    workers: $('workers').value,
+    listCode: $('listCode').value,
+    res: $('res').value,
+    ids: [...ids],
+    source
+  });
+  setPresets(arr);
+  $('presetName').value = '';
+  renderPresets();
+  toast('预设「'+name+'」已保存');
+}
+
+function loadPreset(i){
+  const arr = getPresets();
+  const p = arr[i];
+  if(!p) return;
+  $('chromeUrl').value = p.chromeUrl || 'http://localhost:9222/json/version';
+  $('cache').value = p.cache || '';
+  $('down').value = p.down || '';
+  $('httpProxy').value = p.httpProxy || '';
+  $('directDlFirst').checked = p.directDlFirst !== false;  // 默认 true
+  $('clearCache').checked = p.clearCache !== false;        // 默认 true
+  $('workers').value = p.workers || 10;
+  $('workersRange').value = p.workers || 10;
+  $('workersVal').textContent = p.workers || 10;
+  $('listCode').value = p.listCode || '';
+  $('res').value = p.res || '1080p';
+  if(p.ids && p.ids.length){
+    ids = [...p.ids];
+    source = p.source || '预设';
+  }
+  updateStats();
+  toast('已加载预设「'+p.name+'」');
+  closePreset();
+}
+
+function deletePreset(i){
+  if(!confirm('删除该预设？')) return;
+  const arr = getPresets();
+  arr.splice(i,1);
+  setPresets(arr);
+  renderPresets();
+  toast('已删除');
+}
+
+// ============ 主题 ============
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur==='light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', next);
+  $('themeBtn').textContent = next==='light' ? '☀ 浅色' : '🌙 深色';
+  localStorage.setItem('hanime_theme', next);
+}
+(function initTheme(){
+  const saved = localStorage.getItem('hanime_theme') || 'dark';
+  if(saved==='light'){
+    document.documentElement.setAttribute('data-theme','light');
+    $('themeBtn').textContent = '☀ 浅色';
+  }
+})();
+
+// ============ 实时预览（输入变化时） ============
+let liveTimer;
+function scheduleLive(){
+  clearTimeout(liveTimer);
+  liveTimer = setTimeout(()=>gen(true), 300);
+}
+['cache','down','workers','res','chromeUrl','httpProxy','listCode'].forEach(id=>{
+  const el = $(id);
+  if(el){ el.addEventListener('input', scheduleLive); el.addEventListener('change', scheduleLive); }
+});
+['directDlFirst','clearCache'].forEach(id=>{
+  const el = $(id);
+  if(el) el.addEventListener('change', scheduleLive);
+});
+
+// ============ 初始化 ============
+updateStats();
+// 自动加载上次预设（如果有）
+(function autoLoad(){
+  const arr = getPresets();
+  if(arr.length>0){
+    // 不自动覆盖 ID，仅提示
+    setTimeout(()=>toast('检测到 '+arr.length+' 个已保存预设，点击右上角「预设」加载'), 500);
+  }
+})();
+</script>
+</body>
+</html>
