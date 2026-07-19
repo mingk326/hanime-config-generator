@@ -7,6 +7,15 @@
 ![license](https://img.shields.io/badge/license-MIT-blue)
 ![size](https://img.shields.io/badge/size-42KB-brightgreen)
 ![deps](https://img.shields.io/badge/dependencies-zero-success)
+![preview](https://img.shields.io/badge/preview-online-success)
+
+## 在线预览
+
+无需下载，直接在浏览器中使用：
+
+**[https://hanime-config-generator.1768432482.workers.dev](https://hanime-config-generator.1768432482.workers.dev)**
+
+预览站点通过 Cloudflare Workers 部署，与仓库 `index.html` 内容同步。打开后即可使用全部功能，数据仍在本地处理，不上传到任何服务器。
 
 ## 功能概览
 
@@ -98,7 +107,11 @@ ListCode（播放列表 ID）单独配置，不与 SingleCode 混淆。
 
 ### 在线使用
 
-直接访问 GitHub Pages（如已开启）或 raw 文件地址：
+推荐访问 Cloudflare Workers 预览站点（与仓库内容同步）：
+
+**[https://hanime-config-generator.1768432482.workers.dev](https://hanime-config-generator.1768432482.workers.dev)**
+
+或者直接访问 raw 文件地址（无样式渲染需手动保存为 .html 后打开）：
 
 ```
 https://raw.githubusercontent.com/mingk326/hanime-config-generator/main/index.html
