@@ -211,7 +211,7 @@ footer{text-align:center;color:var(--text-dim);font-size:12px;margin-top:20px;pa
       <div class="field">
         <label>CacheDir <span class="hint">缓存目录</span></label>
         <div class="input-row">
-          <input type="text" id="cache" placeholder="例如 E:\Cache 或 \\R1\1\Cache">
+          <input type="text" id="cache" value="./cache" placeholder="例如 E:\Cache 或 \\R1\1\Cache">
           <button class="btn" onclick="browseDir('cache')">浏览</button>
         </div>
         <small style="color:var(--text-dim);font-size:11px">浏览仅填入文件夹名，请手动补全完整路径（可从资源管理器地址栏复制）</small>
@@ -220,7 +220,7 @@ footer{text-align:center;color:var(--text-dim);font-size:12px;margin-top:20px;pa
       <div class="field">
         <label>DownDir <span class="hint">下载目录</span></label>
         <div class="input-row">
-          <input type="text" id="down" placeholder="例如 Z:\ 或 \\R1\1\warehouse">
+          <input type="text" id="down" value="./downloads" placeholder="例如 Z:\ 或 \\R1\1\warehouse">
           <button class="btn" onclick="browseDir('down')">浏览</button>
         </div>
         <small style="color:var(--text-dim);font-size:11px">浏览仅填入文件夹名，请手动补全完整路径</small>
@@ -228,7 +228,7 @@ footer{text-align:center;color:var(--text-dim);font-size:12px;margin-top:20px;pa
 
       <div class="field">
         <label>HttpProxy <span class="hint">HTTP 代理（可选，留空则不启用）</span></label>
-        <input type="text" id="httpProxy" placeholder="例如 http://proxy.example.com:8080 或 http://127.0.0.1:7890">
+        <input type="text" id="httpProxy" value="socks5://127.0.0.1:10808" placeholder="例如 http://proxy.example.com:8080 或 http://127.0.0.1:7890">
       </div>
 
       <div class="field">
@@ -243,10 +243,10 @@ footer{text-align:center;color:var(--text-dim);font-size:12px;margin-top:20px;pa
       <div class="field">
         <label>MaxDownloadWorkers <span class="hint">最大并发下载线程数</span></label>
         <div class="range-wrap">
-          <input type="range" id="workersRange" min="1" max="100" value="10" oninput="syncWorkers()">
-          <span class="val" id="workersVal">10</span>
+          <input type="range" id="workersRange" min="1" max="100" value="3" oninput="syncWorkers()">
+          <span class="val" id="workersVal">3</span>
         </div>
-        <input type="number" id="workers" min="1" max="100" value="10" style="margin-top:6px" oninput="document.getElementById('workersRange').value=this.value;document.getElementById('workersVal').textContent=this.value">
+        <input type="number" id="workers" min="1" max="100" value="3" style="margin-top:6px" oninput="document.getElementById('workersRange').value=this.value;document.getElementById('workersVal').textContent=this.value">
       </div>
 
       <div class="field">
@@ -727,7 +727,7 @@ function gen(previewOnly){
   y += 'CacheDir: ' + yamlVal($('cache').value.trim()) + '\n';
   y += 'DownDir: ' + yamlVal($('down').value.trim()) + '\n';
   y += 'VideoResolution: ' + yamlVal($('res').value) + '\n';
-  y += 'MaxDownloadWorkers: ' + parseInt($('workers').value||10) + '\n';
+  y += 'MaxDownloadWorkers: ' + parseInt($('workers').value||3) + '\n';
   y += 'DirectDownloadFirst: ' + ($('directDlFirst').checked ? 'true' : 'false') + '\n';
 
   // HttpProxy 可选：留空则不输出该字段
@@ -754,16 +754,23 @@ function gen(previewOnly){
   if(!previewOnly) toast('生成成功：SingleCode '+workIds.length+' + ListCode '+listIds.length);
 }
 
+function cfgFileName(){
+  const raw = (pyVal('tgName')||'').replace(/[`]/g,'');
+  const base = raw.replace(/[\\/:*?"<>|]/g,'_').replace(/[ \.\t]+$/,'').trim();
+  return base ? base + '_config.yaml' : 'config.yaml';
+}
+
 function download(){
   gen();
   if($('out').textContent.startsWith('# 点击')) return;
+  const fname = cfgFileName();
   const blob = new Blob([$('out').textContent], {type:'text/yaml;charset=utf-8'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'config.yaml';
+  a.download = fname;
   a.click();
   URL.revokeObjectURL(a.href);
-  toast('已下载 config.yaml');
+  toast('已下载 '+fname);
 }
 
 function copyYaml(){
@@ -1263,14 +1270,14 @@ function loadPreset(i){
   const p = arr[i];
   if(!p) return;
   $('chromeUrl').value = p.chromeUrl || 'http://localhost:9222/json/version';
-  $('cache').value = p.cache || '';
-  $('down').value = p.down || '';
-  $('httpProxy').value = p.httpProxy || '';
+  $('cache').value = p.cache || './cache';
+  $('down').value = p.down || './downloads';
+  $('httpProxy').value = p.httpProxy || 'socks5://127.0.0.1:10808';
   $('directDlFirst').checked = p.directDlFirst !== false;  // 默认 true
   $('clearCache').checked = p.clearCache !== false;        // 默认 true
-  $('workers').value = p.workers || 10;
-  $('workersRange').value = p.workers || 10;
-  $('workersVal').textContent = p.workers || 10;
+  $('workers').value = p.workers || 3;
+  $('workersRange').value = p.workers || 3;
+  $('workersVal').textContent = p.workers || 3;
   $('listCode').value = p.listCode || '';
   $('res').value = p.res || '1080p';
   if(p.ids && p.ids.length){
