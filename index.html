@@ -287,6 +287,7 @@ footer{text-align:center;color:var(--text-dim);font-size:12px;margin-top:20px;pa
       <span style="font-size:12px;color:var(--text-dim)" id="yamlInfo"></span>
     </div>
     <div class="yaml-out" id="out"># 点击「生成 config.yaml」查看结果</div>
+    <div style="font-size:12px;color:var(--text-dim);margin-top:6px">将下载为：<b id="dlName" style="color:var(--accent)">config.yaml</b> <span style="opacity:.75">（由「视频抓取 → 标签抓取」的「标签名/搜索词」决定，留空则用 config.yaml）</span></div>
   </div>
   </div><!-- /secYaml -->
 
@@ -752,12 +753,17 @@ function gen(previewOnly){
   const totalIds = workIds.length + listIds.length;
   $('yamlInfo').textContent = totalIds + ' 个 ID · ' + formatBytes(y.length);
   if(!previewOnly) toast('生成成功：SingleCode '+workIds.length+' + ListCode '+listIds.length);
+  updateDlName();
 }
 
 function cfgFileName(){
   const raw = (pyVal('tgName')||'').replace(/[`]/g,'');
   const base = raw.replace(/[\\/:*?"<>|]/g,'_').replace(/[ \.\t]+$/,'').trim();
   return base ? base + '_config.yaml' : 'config.yaml';
+}
+function updateDlName(){
+  const el = $('dlName');
+  if(el) el.textContent = cfgFileName();
 }
 
 function download(){
@@ -1149,6 +1155,7 @@ function switchTab(btn, panelId){
 
 // 标签脚本实时预览
 function scheduleLivePyTag(){
+  updateDlName();
   clearTimeout(scheduleLivePyTag._t);
   scheduleLivePyTag._t = setTimeout(()=>genPyTag(true), 300);
 }
