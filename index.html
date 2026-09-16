@@ -397,7 +397,7 @@ footer{text-align:center;color:var(--text-dim);font-size:12px;margin-top:20px;pa
       </div>
       <div>
         <div class="field">
-          <label>输出文件路径 <span class="hint">填目录或 .txt 均可，目录自动补 SingleCode.txt</span></label>
+          <label>输出文件路径 <span class="hint">默认命名「标签_SingleCode.txt」；填目录或自定义 .txt 均支持</span></label>
           <input type="text" id="tgOutput" value="E:\SingleCode.txt" placeholder="如 E:\SingleCode.txt 或 E:\ai work">
         </div>
         <div class="field">
@@ -945,10 +945,18 @@ function genPyTag(previewOnly){
   const useTqdm = $('tgTqdm').checked;
   const useInput = $('tgAutoInput').checked;
 
-  // 输出路径处理：目录或没有 .txt 后缀则自动补全
-  let finalOutput = output.replace(/[`]/g, '');
-  if(!finalOutput.toLowerCase().endsWith('.txt')){
-    finalOutput = finalOutput.replace(/[\\/]+$/, '') + '\\SingleCode.txt';
+  // 输出路径处理：默认/目录自动命名为「标签_SingleCode.txt」；
+  // 若文件名仍是默认 SingleCode.txt 也自动换成标签名；用户自定义 .txt 则尊重。
+  const tagOutBase = tagFileBase() + '_SingleCode.txt';
+  let finalOutput = (pyVal('tgOutput')||'').replace(/[`]/g, '');
+  if(!finalOutput){
+    finalOutput = 'E:\\' + tagOutBase;
+  } else if(/\.txt$/i.test(finalOutput)){
+    if(/[\\/]SingleCode\.txt$/i.test(finalOutput)){
+      finalOutput = finalOutput.replace(/[\\/]SingleCode\.txt$/i, '\\') + tagOutBase;
+    }
+  } else {
+    finalOutput = finalOutput.replace(/[\\/]+$/, '') + '\\' + tagOutBase;
   }
 
   // Python 字符串里的反斜杠和引号需要转义
@@ -988,7 +996,7 @@ function genPyTag(previewOnly){
   // ============ 路径自愈 ============
   code += '# 如果 OUTPUT 是目录或没有 .txt 后缀，自动补全文件名\n';
   code += 'if os.path.isdir(OUTPUT) or not OUTPUT.lower().endswith(".txt"):\n';
-  code += '    OUTPUT = os.path.join(OUTPUT, "SingleCode.txt")\n';
+  code += '    OUTPUT = os.path.join(OUTPUT, "' + tagOutBase + '")\n';
   code += '    print("[提示] OUTPUT 已自动补全为：", OUTPUT)\n\n\n';
   code += 'def extract_code(html):\n';
   code += '    """提取 watch?v=xxxx"""\n';
