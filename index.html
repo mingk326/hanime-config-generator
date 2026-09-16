@@ -956,7 +956,7 @@ function genPyTag(previewOnly){
 
   let code = '';
   code += '"""\n';
-  code += 'hanime_tag_get_code.py\n';
+  code += tagFileName() + '\n';
   code += `# 由 Hanime config.yaml 生成器 生成 · ${new Date().toLocaleString('zh-CN')}\n`;
   code += `# 标签抓取：${name}\n`;
   code += '# 搜索 URL：https://hanime1.me/search?query=<编码后的标签>&page=N\n';
@@ -1088,17 +1088,25 @@ function genPyTag(previewOnly){
   if(!previewOnly) toast('标签脚本生成成功：'+lines+' 行');
 }
 
+function tagFileBase(){
+  const raw = (pyVal('tgName')||'').replace(/[`]/g,'');
+  const base = raw.replace(/[\\/:*?"<>|]/g,'_').replace(/[ \.\t]+$/,'').trim();
+  return base ? base : 'hanime_tag';
+}
+function tagFileName(){ return tagFileBase()+'_get.py'; }
+
 function downloadPyTag(){
   genPyTag();
   const text = $('tgOut').textContent;
   if(text.startsWith('# 点击')) return;
+  const fname = tagFileName();
   const blob = new Blob([text], {type:'text/x-python;charset=utf-8'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'hanime_tag_get_code.py';
+  a.download = fname;
   a.click();
   URL.revokeObjectURL(a.href);
-  toast('已下载 hanime_tag_get_code.py');
+  toast('已下载 '+fname);
 }
 
 function copyPyTag(){
